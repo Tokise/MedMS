@@ -1,0 +1,224 @@
+@import url('variables.css');
+
+body {
+    background-color: var(--secondary-color);
+    background-image: 
+        linear-gradient(rgba(18, 18, 18, 0.85), rgba(18, 18, 18, 0.95)),
+        url('../assets/img/auth-bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 0;
+}
+
+.login-card, .signup-card {
+    max-width: 500px;
+    width: 100%;
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-lg);
+    background-color: var(--card-bg);
+    padding: 0;
+    overflow: hidden;
+    transition: all var(--transition-normal);
+}
+
+.signup-card {
+    max-width: 700px;
+}
+
+.login-card:hover, .signup-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px rgba(0, 0, 0, 0.3);
+}
+
+.card-header {
+    background-color: var(--accent-color);
+    border-bottom: 1px solid var(--card-border);
+    padding: 2rem 1.5rem;
+    text-align: center;
+}
+
+.card-body {
+    padding: 2rem;
+}
+
+.icon-container {
+    border-radius: 50%;
+    height: 90px;
+    width: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem auto;
+    background-color: var(--primary-color);
+    box-shadow: var(--shadow-md);
+}
+
+.icon-container i {
+    font-size: 3rem;
+    color: var(--text-primary);
+}
+
+.form-control {
+    border-radius: 50rem;
+    padding: 1.2rem 1rem;
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.form-control:focus {
+    background-color: var(--input-bg);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.input-group-text {
+    border-radius: 50rem 0 0 50rem;
+    border-right: none;
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    color: var(--text-muted);
+}
+
+.input-group-text.password-toggle {
+    border-radius: 0 50rem 50rem 0;
+    border-left: none;
+    cursor: pointer;
+}
+
+.form-control.left-border-none {
+    border-left: none;
+    border-radius: 0 50rem 50rem 0;
+}
+
+.divider {
+    position: relative;
+    text-align: center;
+    margin: 1.5rem 0;
+}
+
+.divider:before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: var(--card-border);
+    z-index: 1;
+}
+
+.divider span {
+    position: relative;
+    background-color: var(--card-bg);
+    padding: 0 1rem;
+    z-index: 5;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.btn-primary {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: var(--text-primary);
+    padding: 0.75rem;
+    font-weight: 600;
+    border-radius: 50rem;
+    transition: all var(--transition-normal);
+}
+
+.btn-primary:hover {
+    background-color: var(--button-hover);
+    border-color: var(--button-hover);
+    transform: translateY(-2px);
+}
+
+.password-strength {
+    height: 5px;
+    margin-top: 10px;
+    background-color: var(--input-border);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.password-strength-meter {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.5s ease;
+    width: 0;
+}
+
+.weak {
+    width: 25%;
+    background-color: var(--danger-color);
+}
+
+.medium {
+    width: 50%;
+    background-color: var(--warning-color);
+}
+
+.strong {
+    width: 75%;
+    background-color: var(--info-color);
+}
+
+.very-strong {
+    width: 100%;
+    background-color: var(--success-color);
+}
+
+.form-check-input {
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+}
+
+.form-check-input:checked {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+.form-select {
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    color: var(--text-primary);
+    border-radius: var(--border-radius-sm);
+}
+
+.form-select:focus {
+    background-color: var(--input-bg);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.1);
+}
+
+.form-text {
+    color: var(--text-muted);
+}
+
+a {
+    color: var(--info-color);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+a:hover {
+    color: var(--text-primary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .login-card, .signup-card {
+        margin: 1rem;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+}
