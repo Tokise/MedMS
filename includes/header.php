@@ -46,9 +46,12 @@ if ($showTutorial) {
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="/MedMS/styles/variables.css">
-    <link rel="stylesheet" href="/MedMS/styles/global.css">
-    <link rel="stylesheet" href="/MedMS/styles/dashboard.css">
+    <link rel="stylesheet" href="/MedMS/styles/components.css">
+    <!-- Add IntroJS CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/6.0.0/introjs.min.css">
+    <!-- jQuery UI for better interactions -->
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
     
    
     <!-- jQuery (needed for some Bootstrap features) -->
@@ -59,137 +62,100 @@ if ($showTutorial) {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/6.0.0/intro.min.js"></script>
 </head>
 <body class="dark-theme">
-    <!-- Top Navigation -->
-    <nav class="navbar navbar-expand-md fixed-top">
-        <div class="container-fluid">
-            <?php if (isset($_SESSION['user_id'])): ?>
-                <button class="btn btn-link d-md-none rounded-circle mr-3" id="sidebarToggleTop">
-                    <i class="fa fa-bars"></i>
-                </button>
-            <?php endif; ?>
-            
-            <a class="navbar-brand" href="/MedMS/index.php">
-               <img src="/MedMS/assets/img/logo.png" alt="MedMS Logo" class="img-fluid" style="max-width: 50px;">MedMS
+    <nav class="header-nav">
+        <div class="header-container">
+            <a class="brand" href="/MedMS/index.php">
+                <img src="/MedMS/assets/img/logo.png" alt="MedMS Logo" class="brand-logo">
+                <div class="brand-text">
+                    <span class="brand-name gradient-text">MedMS</span>
+                    <span class="brand-subtitle">Medical Management System</span>
+                </div>
             </a>
             
             <?php if (isset($_SESSION['user_id'])): ?>
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <!-- Topbar Search -->
-                    <?php if (in_array($role, ['Doctor', 'Nurse', 'Admin'])): ?>
-                        <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
-                            <div class="input-group">
-                                <input type="text" class="form-control" placeholder="Search for..."
-                                    aria-label="Search" aria-describedby="basic-addon2">
-                                <button class="btn btn-primary" type="button" id="search-button">
-                                    <i class="fas fa-search fa-sm"></i>
-                                </button>
-                            </div>
-                        </form>
-                    <?php endif; ?>
+                <div class="nav-actions">
+                    <div class="nav-item dropdown">
+                        <button class="nav-link" id="notificationDropdown" data-bs-toggle="dropdown">
+                            <i class="fas fa-bell"></i>
+                            <span class="badge">3</span>
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="notificationDropdown">
+                            <a class="dropdown-item" href="#"><i class="fas fa-info-circle"></i> New Message</a>
+                            <a class="dropdown-item" href="#"><i class="fas fa-calendar"></i> Appointment Update</a>
+                            <a class="dropdown-item" href="#"><i class="fas fa-bell"></i> System Alert</a>
+                        </div>
+                    </div>
+                    
+                    <div class="nav-item dropdown">
+                        <button class="nav-link" id="messageDropdown" data-bs-toggle="dropdown">
+                            <i class="fas fa-envelope"></i>
+                            <span class="badge">7</span>
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="messageDropdown">
+                            <a class="dropdown-item" href="#"><i class="fas fa-envelope"></i> New Message</a>
+                            <a class="dropdown-item" href="#"><i class="fas fa-inbox"></i> Inbox</a>
+                            <a class="dropdown-item" href="#"><i class="fas fa-paper-plane"></i> Sent</a>
+                        </div>
+                    </div>
+                    
+                    <div class="nav-item">
+                        <button class="nav-link" id="themeToggle">
+                            <i class="fas fa-moon"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="nav-item dropdown">
+                        <button class="profile-toggle" id="userDropdown" data-bs-toggle="dropdown">
+                            <img src="<?= !empty($user['profile_image']) ? htmlspecialchars($user['profile_image']) : 'https://via.placeholder.com/150' ?>" 
+                                 alt="Profile" class="profile-img">
+                            <span class="profile-name"><?= htmlspecialchars($user['first_name']) ?></span>
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="userDropdown">
+                            <a class="dropdown-item" href="/MedMS/src/modules/profile/index.php">
+                                <i class="fas fa-user"></i> My Profile
+                            </a>
+                            <a class="dropdown-item" href="/MedMS/src/modules/settings/index.php">
+                                <i class="fas fa-cog"></i> Settings
+                            </a>
+                            <a class="dropdown-item" href="/MedMS/demo/index.php" onclick="startDemoTour(event)">
+                                <i class="fas fa-desktop"></i> Try Demo
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item text-danger" href="/MedMS/auth/logout.php">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            <?php else: ?>
+                <div class="nav-actions">
+                    <a href="/MedMS/auth/login.php" class="nav-link">Login</a>
+                    <a href="/MedMS/auth/signup.php" class="nav-link">Sign Up</a>
+                    <a href="/MedMS/demo/index.php" class="demo-btn">
+                        <i class="fas fa-desktop"></i> Try Demo
+                    </a>
                 </div>
             <?php endif; ?>
-            
-            <!-- Navbar toggler for mobile -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
-                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <?php if (isset($_SESSION['user_id'])): ?>
-                        <!-- Alerts -->
-                        <li class="nav-item dropdown no-arrow mx-1" data-intro="View your notifications here">
-                            <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button"
-                                data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-bell fa-fw"></i>
-                                <span class="badge badge-counter">3+</span>
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-end shadow"
-                                aria-labelledby="alertsDropdown">
-                                <h6 class="dropdown-header">Alerts Center</h6>
-                                <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="mr-3">
-                                        <div class="icon-circle bg-primary">
-                                            <i class="fas fa-file-alt text-white"></i>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="small">Today</div>
-                                        <span class="fw-bold">New prescription available</span>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item text-center small" href="#">Show All Alerts</a>
-                            </div>
-                        </li>
-                        
-                        <!-- Messages -->
-                        <li class="nav-item dropdown no-arrow mx-1" data-intro="Check your messages here">
-                            <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button"
-                                data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-envelope fa-fw"></i>
-                                <span class="badge badge-counter">7</span>
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-end shadow"
-                                aria-labelledby="messagesDropdown">
-                                <h6 class="dropdown-header">Message Center</h6>
-                                <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="dropdown-list-image mr-3">
-                                        <img class="rounded-circle" src="https://source.unsplash.com/Mv9hjnEUHR4/60x60" alt="...">
-                                        <div class="status-indicator bg-success"></div>
-                                    </div>
-                                    <div>
-                                        <div class="text-truncate">Message preview goes here...</div>
-                                        <div class="small">Sender · Time</div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item text-center small" href="#">Read More Messages</a>
-                            </div>
-                        </li>
-                        
-                        <!-- Theme Toggle -->
-                        <li class="nav-item mx-1" data-intro="Toggle between light and dark mode">
-                            <a class="nav-link" href="#" id="themeToggle">
-                                <i class="fas fa-moon"></i>
-                            </a>
-                        </li>
-                        
-                        <!-- User Information -->
-                        <li class="nav-item dropdown no-arrow" data-intro="Access your profile settings and logout here">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                                data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="d-none d-lg-inline small me-2"><?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?></span>
-                                <img class="profile-img" src="<?= !empty($user['profile_image']) ? htmlspecialchars($user['profile_image']) : 'https://via.placeholder.com/150' ?>" alt="Profile">
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-end shadow"
-                                aria-labelledby="userDropdown">
-                                <a class="dropdown-item" href="/MedMS/src/modules/profile/index.php">
-                                    <i class="fas fa-user fa-sm fa-fw mr-2"></i>
-                                    Profile
-                                </a>
-                                <a class="dropdown-item" href="#" id="startTutorial">
-                                    <i class="fas fa-question-circle fa-sm fa-fw mr-2"></i>
-                                    Take Tour
-                                </a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="/MedMS/auth/logout.php">
-                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2"></i>
-                                    Logout
-                                </a>
-                            </div>
-                        </li>
-                    <?php else: ?>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/MedMS/auth/login.php">Login</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/MedMS/auth/signup.php">Sign Up</a>
-                        </li>
-                    <?php endif; ?>
-                </ul>
-            </div>
         </div>
     </nav>
+
+    <?php if ($showTutorial): ?>
+    <div class="tutorial-modal" id="tutorialModal">
+        <div class="tutorial-content">
+            <div class="tutorial-header">
+                <h2>Welcome to MedMS!</h2>
+                <button type="button" class="close-btn" onclick="closeTutorial()">&times;</button>
+            </div>
+            <div class="tutorial-body">
+                <p>Would you like to take a quick tour of the system?</p>
+            </div>
+            <div class="tutorial-footer">
+                <button class="btn btn-secondary" onclick="closeTutorial()">Skip Tour</button>
+                <button class="btn btn-primary" onclick="startTutorial()">Start Tour</button>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
     
     <!-- Wrapper -->
     <div class="wrapper d-flex">
@@ -197,69 +163,38 @@ if ($showTutorial) {
             <?php include_once __DIR__ . '/sidebar.php'; ?>
         <?php endif; ?>
         
-        <!-- Main Content -->
-        <div class="main-content <?= !isset($_SESSION['user_id']) ? 'w-100' : '' ?>" data-intro="This is the main content area where you'll interact with the system">
-            <div class="container-fluid">
-                
-            <?php if ($showTutorial): ?>
-            <!-- Tutorial Modal - Will be shown automatically on first login -->
-            <div class="modal fade" id="tutorialModal" tabindex="-1" aria-labelledby="tutorialModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="tutorialModalLabel">Welcome to MedMS!</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <p>Would you like to take a quick tour of the system?</p>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Skip Tour</button>
-                            <button type="button" class="btn btn-primary" id="startTutorialFromModal">Start Tour</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <?php endif; ?>
+    </div>
+
+   
+    <!-- Intro.js Initialization Script -->
 
 <script type="text/javascript">
+function closeTutorial() {
+    document.getElementById('tutorialModal').style.display = 'none';
+    sessionStorage.setItem('tutorial_dismissed', 'true');
+}
+
+function startTutorial() {
+    document.getElementById('tutorialModal').style.display = 'none';
+    startDemoTour();
+}
+
+// Add event listeners when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Bootstrap dropdowns
-    var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
-    var dropdownList = dropdownElementList.map(function(element) {
-        return new bootstrap.Dropdown(element);
-    });
-    
-    // Show tutorial modal if needed
-    <?php if ($showTutorial): ?>
-    var tutorialModal = new bootstrap.Modal(document.getElementById('tutorialModal'));
-    tutorialModal.show();
-    <?php endif; ?>
-    
-    // Toggle sidebar on mobile
-    if (document.getElementById('sidebarToggleTop')) {
-        document.getElementById('sidebarToggleTop').addEventListener('click', function() {
-            document.querySelector('.sidebar').classList.toggle('toggled');
-        });
+    // Initialize tutorial modal
+    const tutorialModal = document.getElementById('tutorialModal');
+    const closeBtn = tutorialModal ? tutorialModal.querySelector('.close-btn') : null;
+    const skipBtn = tutorialModal ? tutorialModal.querySelector('.btn-secondary') : null;
+    const startBtn = tutorialModal ? tutorialModal.querySelector('.btn-primary') : null;
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeTutorial);
     }
-    
-    // Start tutorial when button is clicked
-    if (document.getElementById('startTutorial')) {
-        document.getElementById('startTutorial').addEventListener('click', function(e) {
-            e.preventDefault();
-            introJs().start();
-        });
+    if (skipBtn) {
+        skipBtn.addEventListener('click', closeTutorial);
     }
-    
-    // Start tutorial from modal when button is clicked
-    if (document.getElementById('startTutorialFromModal')) {
-        document.getElementById('startTutorialFromModal').addEventListener('click', function() {
-            var tutorialModal = bootstrap.Modal.getInstance(document.getElementById('tutorialModal'));
-            tutorialModal.hide();
-            setTimeout(function() {
-                introJs().start();
-            }, 500);
-        });
+    if (startBtn) {
+        startBtn.addEventListener('click', startTutorial);
     }
     
     // Toggle between light and dark theme
@@ -278,6 +213,127 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Update the startDemoTour function
+function startDemoTour(event) {
+    if (event) {
+        event.preventDefault();
+    }
+    
+    // Remove any existing intro.js elements
+    const existingOverlay = document.querySelector('.introjs-overlay');
+    const existingTooltip = document.querySelector('.introjs-tooltipReferenceLayer');
+    if (existingOverlay) existingOverlay.remove();
+    if (existingTooltip) existingTooltip.remove();
+    
+    // Store demo state in session
+    sessionStorage.setItem('demo_active', 'true');
+    
+    // Get current page type and start appropriate tour
+    const currentPath = window.location.pathname;
+    if (currentPath.includes('/dashboard/student/')) {
+        startStudentDashboardTour();
+    } else if (currentPath.includes('/dashboard/doctor/')) {
+        startDoctorDashboardTour();
+    } else if (currentPath.includes('/dashboard/admin/')) {
+        startAdminDashboardTour();
+    } else {
+        startGeneralTour();
+    }
+}
+
+function startGeneralTour() {
+    // Remove any existing intro overlay first
+    const existingOverlay = document.querySelector('.introjs-overlay');
+    if (existingOverlay) {
+        existingOverlay.remove();
+    }
+
+}
 </script>
+
+<!-- Add custom styles for intro.js -->
+<style>
+.introjs-custom-highlight {
+    background-color: rgba(255,255,255,0.1) !important;
+    border-radius: 4px !important;
+}
+
+.introjs-tooltip {
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+.introjs-button {
+    background-color: var(--accent-color) !important;
+    color: white !important;
+    border: none !important;
+    text-shadow: none !important;
+    padding: 8px 16px !important;
+    border-radius: 4px !important;
+}
+
+.introjs-button:hover {
+    background-color: var(--accent-hover-color) !important;
+}
+
+.introjs-overlay {
+    opacity: 0.85 !important;
+    background-color: var(--bg-primary) !important;
+}
+
+.tutorial-modal {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+
+.tutorial-content {
+    background: var(--background-color);
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 90%;
+}
+
+.tutorial-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-color);
+}
+
+.tutorial-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.introjs-tooltip {
+    min-width: 300px;
+}
+
+.introjs-button {
+    cursor: pointer !important;
+}
+</style>
 </body>
 </html>

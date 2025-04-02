@@ -49,15 +49,13 @@ $role = 'Doctor';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Doctor Dashboard - MedMS</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+   
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Chart.js -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/MedMS/styles/variables.css">
-    <link rel="stylesheet" href="/MedMS/styles/global.css">
     <link rel="stylesheet" href="/MedMS/styles/dashboard.css">
     <!-- Intro.js for guided tour -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/6.0.0/introjs.min.css">
@@ -374,6 +372,50 @@ $role = 'Doctor';
             <?php $_SESSION['show_tutorial'] = false; ?>
         <?php endif; ?>
     });
+
+    function startDoctorDashboardTour() {
+        const existingOverlay = document.querySelector('.introjs-overlay');
+        if (existingOverlay) existingOverlay.remove();
+
+        introJs().setOptions({
+            steps: [
+                {
+                    title: 'Doctor Dashboard',
+                    intro: 'Welcome to your Medical Practice Portal! Let\'s explore your tools and features.',
+                    position: 'center'
+                },
+                {
+                    element: '.welcome-card',
+                    intro: 'Your profile and today\'s overview.',
+                    position: 'bottom'
+                },
+                {
+                    element: '.stats-card',
+                    intro: 'Quick statistics about your patients and appointments.',
+                    position: 'bottom'
+                },
+                {
+                    element: '.appointments-section',
+                    intro: 'Manage your daily appointments and consultations.',
+                    position: 'left'
+                },
+                {
+                    element: '.patient-stats',
+                    intro: 'View patient statistics and treatment progress.',
+                    position: 'right'
+                }
+            ],
+            showProgress: true,
+            showBullets: true,
+            exitOnOverlayClick: false,
+            exitOnEsc: false,
+            doneLabel: 'Finish Tour',
+            tooltipClass: 'customTooltip',
+            overlayOpacity: 0.7,
+            scrollToElement: true,
+            highlightClass: 'introjs-custom-highlight'
+        }).start();
+    }
     </script>
 </body>
 </html>

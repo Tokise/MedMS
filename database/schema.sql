@@ -28,6 +28,8 @@ CREATE TABLE users (
     last_name VARCHAR(100) NOT NULL,
     profile_image VARCHAR(255),
     is_active BOOLEAN DEFAULT TRUE,
+    first_login BOOLEAN DEFAULT TRUE,
+    has_seen_demo BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (role_id) REFERENCES roles(role_id)
@@ -38,12 +40,12 @@ CREATE TABLE students (
     student_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT UNIQUE NOT NULL,
     grade_level VARCHAR(20),
-    date_of_birth DATE NOT NULL,
+    date_of_birth DATE NULL,
     gender VARCHAR(20),
     blood_type VARCHAR(10),
-    emergency_contact_name VARCHAR(100) NOT NULL,
-    emergency_contact_number VARCHAR(20) NOT NULL,
-    emergency_contact_relationship VARCHAR(50) NOT NULL,
+    emergency_contact_name VARCHAR(100) NULL,
+    emergency_contact_number VARCHAR(20) NULL,
+    emergency_contact_relationship VARCHAR(50) NULL,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
@@ -226,6 +228,21 @@ CREATE TABLE system_logs (
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE SET NULL
 );
 
+-- Medical Supplies Inventory
+CREATE TABLE medical_supplies (
+    item_id INT PRIMARY KEY AUTO_INCREMENT,
+    item_name VARCHAR(100) NOT NULL,
+    description TEXT,
+    current_quantity INT NOT NULL DEFAULT 0,
+    unit VARCHAR(50) NOT NULL,
+    reorder_level INT NOT NULL,
+    expiry_date DATE,
+    supplier VARCHAR(100),
+    unit_cost DECIMAL(10,2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
 -- INSERT INITIAL DATA
 
 -- Insert roles
@@ -236,6 +253,10 @@ INSERT INTO roles (role_name, description) VALUES
 ('Teacher', 'School faculty member'),
 ('Student', 'Enrolled student');
 
--- Create admin user (password: admin123)
-INSERT INTO users (role_id, school_id, username, password, email, first_name, last_name) 
-VALUES (1, 'ADMIN001', 'admin', '$2y$10$8D4Jdm8qha7Bl0lnKHyICujwMG1NrOhBN2z.q9pNZAJ9M3MUvRKYi', 'admin@medms.edu', 'System', 'Administrator');
+-- Insert sample medical supplies
+INSERT INTO medical_supplies (item_name, description, current_quantity, unit, reorder_level, supplier, unit_cost) VALUES 
+('Bandages', 'Sterile adhesive bandages', 100, 'pieces', 50, 'Medical Supplies Co.', 0.50),
+('Gauze', 'Sterile gauze pads', 75, 'packs', 30, 'Healthcare Products Inc.', 2.00),
+('Antiseptic Solution', 'Betadine solution', 20, 'bottles', 10, 'Pharma Supplies', 5.00),
+('Cotton Balls', 'Sterile cotton balls', 150, 'packs', 50, 'Medical Supplies Co.', 1.00),
+('Surgical Masks', 'Disposable face masks', 200, 'pieces', 100, 'Healthcare Products Inc.', 0.25);

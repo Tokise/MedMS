@@ -2,38 +2,28 @@
 session_start();
 require_once '../config/db.php';
 
-// Log the logout action if user is logged in
-if (isset($_SESSION['user_id'])) {
-    $userId = $_SESSION['user_id'];
+// Store user info before destroying session
+$user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
+$ip_address = $_SERVER['REMOTE_ADDR'];
+$user_agent = $_SERVER['HTTP_USER_AGENT'];
+
+// First, try to log the action
+if ($user_id) {
+    $query = "INSERT INTO system_logs (user_id, action, description, ip_address, user_agent) 
+              VALUES (?, 'Logout', 'User logged out successfully', ?, ?)";
     
-    // Insert logout action to logs
-    $logQuery = "INSERT INTO system_logs (user_id, action, description, ip_address, user_agent, created_at) 
-               VALUES (?, ?, ?, ?, ?, NOW())";
-    $logStmt = $conn->prepare($logQuery);
-    $action = 'Logout';
-    $description = 'User logged out successfully';
-    $ipAddress = $_SERVER['REMOTE_ADDR'];
-    $userAgent = $_SERVER['HTTP_USER_AGENT'];
-    $logStmt->bind_param("issss", $userId, $action, $description, $ipAddress, $userAgent);
-    $logStmt->execute();
+    try {
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("iss", $user_id, $ip_address, $user_agent);
+        $stmt->execute();
+    } catch (Exception $e) {
+        // If logging fails, continue with logout anyway
+        error_log("Failed to log logout action: " . $e->getMessage());
+    }
 }
 
-// Unset all session variables
-$_SESSION = array();
-
-// Delete the session cookie
-if (ini_get("session.use_cookies")) {
-    $params = session_get_cookie_params();
-    setcookie(session_name(), '', time() - 42000,
-        $params["path"], $params["domain"],
-        $params["secure"], $params["httponly"]
-    );
-}
-
-// Destroy the session
+// Then destroy session and redirect
 session_destroy();
-
-// Redirect to login page
 header("Location: /MedMS/auth/login.php");
 exit;
-?> 
+?>

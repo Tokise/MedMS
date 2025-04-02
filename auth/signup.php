@@ -11,29 +11,18 @@ if (isset($_SESSION['user_id'])) {
 $error = '';
 $success = '';
 
-// Get available roles (exclude Admin)
-$rolesQuery = "SELECT * FROM roles WHERE role_name != 'Admin' ORDER BY role_name";
-$rolesResult = $conn->query($rolesQuery);
-$roles = $rolesResult->fetch_all(MYSQLI_ASSOC);
-
 // Process signup form
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Get form data and validate
+    // Get form data
     $school_id = trim($_POST['school_id']);
-    $username = trim($_POST['username']);
     $email = trim($_POST['email']);
     $password = $_POST['password'];
-    $confirmPassword = $_POST['confirm_password'];
     $firstName = trim($_POST['first_name']);
     $lastName = trim($_POST['last_name']);
-    $role_id = $_POST['role_id'];
     
     // Basic validation
-    if (empty($school_id) || empty($username) || empty($email) || empty($password) || empty($confirmPassword) || 
-        empty($firstName) || empty($lastName) || empty($role_id)) {
+    if (empty($school_id) || empty($email) || empty($password) || empty($firstName) || empty($lastName)) {
         $error = "All fields are required";
-    } elseif ($password !== $confirmPassword) {
-        $error = "Passwords do not match";
     } elseif (strlen($password) < 8) {
         $error = "Password must be at least 8 characters long";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -47,78 +36,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($stmt->get_result()->num_rows > 0) {
             $error = "School ID already exists";
         } else {
-            // Check if username already exists
-            $checkUsername = "SELECT user_id FROM users WHERE username = ?";
-            $stmt = $conn->prepare($checkUsername);
-            $stmt->bind_param("s", $username);
-            $stmt->execute();
-            if ($stmt->get_result()->num_rows > 0) {
-                $error = "Username already exists";
-            } else {
-                // Check if email already exists
-                $checkEmail = "SELECT user_id FROM users WHERE email = ?";
-                $stmt = $conn->prepare($checkEmail);
-                $stmt->bind_param("s", $email);
-                $stmt->execute();
-                if ($stmt->get_result()->num_rows > 0) {
-                    $error = "Email already exists";
-                } else {
-                    // Hash password
-                    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+            // Get student role ID
+            $roleQuery = "SELECT role_id FROM roles WHERE role_name = 'Student'";
+            $roleResult = $conn->query($roleQuery);
+            $role = $roleResult->fetch_assoc();
+            $role_id = $role['role_id'];
+            
+            // Hash password
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+            
+            // Begin transaction
+            $conn->begin_transaction();
+            
+            try {
+                // Insert into users table
+                $insertQuery = "INSERT INTO users (role_id, school_id, username, email, password, first_name, last_name, first_login, created_at) 
+                               VALUES (?, ?, ?, ?, ?, ?, ?, TRUE, NOW())";
+                $stmt = $conn->prepare($insertQuery);
+                $username = strtolower($firstName . '.' . $lastName); // Create username
+                $stmt->bind_param("issssss", $role_id, $school_id, $username, $email, $hashedPassword, $firstName, $lastName);
+                
+                if ($stmt->execute()) {
+                    $userId = $stmt->insert_id;
                     
-                    // Insert into users table
-                    $insertQuery = "INSERT INTO users (role_id, school_id, username, password, email, first_name, last_name, created_at) 
-                                   VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
-                    $stmt = $conn->prepare($insertQuery);
-                    $stmt->bind_param("issssss", $role_id, $school_id, $username, $hashedPassword, $email, $firstName, $lastName);
+                    // Create student profile with default values
+                    $profileQuery = "INSERT INTO students (user_id, date_of_birth, emergency_contact_name, emergency_contact_number, emergency_contact_relationship) 
+                                    VALUES (?, CURRENT_DATE, 'To be updated', 'To be updated', 'To be updated')";
+                    $profileStmt = $conn->prepare($profileQuery);
+                    $profileStmt->bind_param("i", $userId);
+                    $profileStmt->execute();
                     
-                    if ($stmt->execute()) {
-                        $userId = $stmt->insert_id;
-                        
-                        // Get role name
-                        $roleQuery = "SELECT role_name FROM roles WHERE role_id = ?";
-                        $roleStmt = $conn->prepare($roleQuery);
-                        $roleStmt->bind_param("i", $role_id);
-                        $roleStmt->execute();
-                        $roleResult = $roleStmt->get_result();
-                        $role = $roleResult->fetch_assoc();
-                        
-                        // Create role-specific profile
-                        if ($role['role_name'] === 'Student') {
-                            $profileQuery = "INSERT INTO students (user_id) VALUES (?)";
-                            $profileStmt = $conn->prepare($profileQuery);
-                            $profileStmt->bind_param("i", $userId);
-                            $profileStmt->execute();
-                        } elseif ($role['role_name'] === 'Teacher') {
-                            $profileQuery = "INSERT INTO teachers (user_id) VALUES (?)";
-                            $profileStmt = $conn->prepare($profileQuery);
-                            $profileStmt->bind_param("i", $userId);
-                            $profileStmt->execute();
-                        } elseif ($role['role_name'] === 'Doctor' || $role['role_name'] === 'Nurse') {
-                            $profileQuery = "INSERT INTO medical_staff (user_id) VALUES (?)";
-                            $profileStmt = $conn->prepare($profileQuery);
-                            $profileStmt->bind_param("i", $userId);
-                            $profileStmt->execute();
-                        }
-                        
-                        // Add registration to logs
-                        $logQuery = "INSERT INTO system_logs (user_id, action, description, ip_address, user_agent, created_at) 
-                                   VALUES (?, ?, ?, ?, ?, NOW())";
-                        $logStmt = $conn->prepare($logQuery);
-                        $action = 'Registration';
-                        $description = 'New user registration';
-                        $ipAddress = $_SERVER['REMOTE_ADDR'];
-                        $userAgent = $_SERVER['HTTP_USER_AGENT'];
-                        $logStmt->bind_param("issss", $userId, $action, $description, $ipAddress, $userAgent);
-                        $logStmt->execute();
-                        
-                        $success = "Account created successfully! You can now login.";
-                        // Redirect to login after 3 seconds
-                        header("refresh:3;url=login.php");
-                    } else {
-                        $error = "Error: " . $stmt->error;
-                    }
+                    $conn->commit();
+                    $success = "Account created successfully! You can now login.";
+                    header("refresh:3;url=login.php");
                 }
+            } catch (Exception $e) {
+                $conn->rollback();
+                $error = "Registration failed: " . $e->getMessage();
             }
         }
     }
@@ -131,153 +85,104 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up - MedMS</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="/MedMS/styles/global.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="/MedMS/styles/variables.css">
     <link rel="stylesheet" href="/MedMS/styles/auth.css">
 </head>
 <body>
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-xl-10 col-lg-12 col-md-12">
-                <div class="card signup-card o-hidden border-0 shadow-lg">
-                    <div class="card-header">
-                        <div class="icon-container">
-                            <i class="fas fa-user-plus"></i>
+    <div class="auth-container signup-layout">
+        <div class="auth-brand-overlay"></div>
+        <div class="auth-content-wrapper">
+            <div class="auth-brand-content">
+                <img src="/MedMS/assets/img/logo.png" alt="MedMS Logo">
+                <h1>MedMS</h1>
+                <p>Medical Management System for Schools</p>
+            </div>
+
+            <div class="auth-form-section">
+                <div class="auth-form-container">
+                    <div class="auth-card">
+                        <div class="auth-header">
+                            <h2>Student Registration</h2>
+                            <p>Create your account to access health services</p>
                         </div>
-                        <h1 class="h4 text-gray-900 mb-2">Create an Account</h1>
-                        <p class="mb-0">MedMS - Medical Management System</p>
-                    </div>
-                    <div class="card-body">
+                        
                         <?php if (!empty($error)): ?>
-                            <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+                            <div class="error-message">
+                                <?= htmlspecialchars($error) ?>
+                            </div>
                         <?php endif; ?>
-                        
+
                         <?php if (!empty($success)): ?>
-                            <div class="alert alert-success"><?= htmlspecialchars($success) ?></div>
+                            <div class="success-message">
+                                <?= htmlspecialchars($success) ?>
+                            </div>
                         <?php endif; ?>
-                        
-                        <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="user">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="school_id" class="form-label">School ID</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">
-                                            <i class="fas fa-id-card"></i>
-                                        </span>
-                                        <input type="text" class="form-control left-border-none" id="school_id" name="school_id" 
-                                               placeholder="Enter School ID" required 
-                                               value="<?= isset($_POST['school_id']) ? htmlspecialchars($_POST['school_id']) : '' ?>">
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label for="role_id" class="form-label">Role</label>
-                                    <select class="form-select" id="role_id" name="role_id" required>
-                                        <option value="" selected disabled>Select Role</option>
-                                        <?php foreach ($roles as $role): ?>
-                                            <option value="<?= $role['role_id'] ?>" <?= (isset($_POST['role_id']) && $_POST['role_id'] == $role['role_id']) ? 'selected' : '' ?>>
-                                                <?= htmlspecialchars($role['role_name']) ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
+
+                        <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>">
+                            <div class="auth-input-group">
+                                <label for="school_id">Student ID</label>
+                                <div class="input-icon-wrapper">
+                                    <i class="fas fa-id-card input-icon"></i>
+                                    <input type="text" name="school_id" id="school_id" placeholder="Enter your student ID" required>
                                 </div>
                             </div>
                             
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="first_name" class="form-label">First Name</label>
-                                    <input type="text" class="form-control" id="first_name" name="first_name" 
-                                           placeholder="First Name" required 
-                                           value="<?= isset($_POST['first_name']) ? htmlspecialchars($_POST['first_name']) : '' ?>">
-                                </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label for="last_name" class="form-label">Last Name</label>
-                                    <input type="text" class="form-control" id="last_name" name="last_name" 
-                                           placeholder="Last Name" required 
-                                           value="<?= isset($_POST['last_name']) ? htmlspecialchars($_POST['last_name']) : '' ?>">
+                            <div class="auth-input-group">
+                                <label for="first_name">First Name</label>
+                                <div class="input-icon-wrapper">
+                                    <i class="fas fa-user input-icon"></i>
+                                    <input type="text" name="first_name" id="first_name" placeholder="Enter your first name" required>
                                 </div>
                             </div>
                             
-                            <div class="mb-3">
-                                <label for="username" class="form-label">Username</label>
-                                <input type="text" class="form-control" id="username" name="username" 
-                                       placeholder="Username" required 
-                                       value="<?= isset($_POST['username']) ? htmlspecialchars($_POST['username']) : '' ?>">
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Email Address</label>
-                                <input type="email" class="form-control" id="email" name="email" 
-                                       placeholder="Email Address" required 
-                                       value="<?= isset($_POST['email']) ? htmlspecialchars($_POST['email']) : '' ?>">
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="password" class="form-label">Password</label>
-                                    <div class="input-group">
-                                        <input type="password" class="form-control" id="password" name="password" 
-                                               placeholder="Password" required>
-                                        <span class="input-group-text password-toggle" style="cursor: pointer;">
-                                            <i class="fas fa-eye-slash"></i>
-                                        </span>
-                                    </div>
-                                    <div class="password-strength">
-                                        <div class="password-strength-meter"></div>
-                                    </div>
-                                    <small class="form-text text-muted">
-                                        Password must be at least 8 characters long
-                                    </small>
-                                </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label for="confirm_password" class="form-label">Confirm Password</label>
-                                    <div class="input-group">
-                                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" 
-                                               placeholder="Confirm Password" required>
-                                        <span class="input-group-text password-toggle" style="cursor: pointer;">
-                                            <i class="fas fa-eye-slash"></i>
-                                        </span>
-                                    </div>
+                            <div class="auth-input-group">
+                                <label for="last_name">Last Name</label>
+                                <div class="input-icon-wrapper">
+                                    <i class="fas fa-user input-icon"></i>
+                                    <input type="text" name="last_name" id="last_name" placeholder="Enter your last name" required>
                                 </div>
                             </div>
                             
-                            <div class="form-check mb-4">
-                                <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
-                                <label class="form-check-label" for="terms">
-                                    I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
-                                </label>
+                            <div class="auth-input-group">
+                                <label for="email">Email Address</label>
+                                <div class="input-icon-wrapper">
+                                    <i class="fas fa-envelope input-icon"></i>
+                                    <input type="email" name="email" id="email" placeholder="Enter your email address" required>
+                                </div>
                             </div>
                             
-                            <button type="submit" class="btn btn-primary w-100 mb-3">
-                                Register Account
-                            </button>
+                            <div class="auth-input-group">
+                                <label for="password">Password</label>
+                                <div class="input-icon-wrapper">
+                                    <i class="fas fa-lock input-icon"></i>
+                                    <input type="password" name="password" id="password" placeholder="Create a password" required>
+                                    <i class="fas fa-eye-slash password-toggle"></i>
+                                </div>
+                                <div class="password-strength mt-2">
+                                    <div class="password-strength-meter"></div>
+                                </div>
+                            </div>
+
+                            <button type="submit">Create Account</button>
                         </form>
-                        
-                        <div class="text-center">
-                            <p>Already have an account? <a href="login.php" class="font-weight-bold">Login</a></p>
-                            <a href="/MedMS/index.php" class="btn btn-link mt-2">
-                                <i class="fas fa-arrow-left me-1"></i> Back to Home
-                            </a>
+
+                        <div class="auth-footer">
+                            <p>Already have an account? <a href="login.php">Login here</a></p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Bootstrap JS -->
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Custom scripts -->
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Password visibility toggle
         const toggleButtons = document.querySelectorAll('.password-toggle');
         toggleButtons.forEach(button => {
             button.addEventListener('click', function() {
@@ -294,7 +199,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             });
         });
         
-        // Password strength meter
         const passwordField = document.getElementById('password');
         const strengthMeter = document.querySelector('.password-strength-meter');
         
@@ -302,13 +206,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             const password = this.value;
             let strength = 0;
             
-            // Calculate password strength
             if (password.length >= 8) strength += 1;
             if (password.match(/[A-Z]/)) strength += 1;
             if (password.match(/[0-9]/)) strength += 1;
             if (password.match(/[^A-Za-z0-9]/)) strength += 1;
             
-            // Update strength meter
             strengthMeter.className = 'password-strength-meter';
             if (password.length === 0) {
                 strengthMeter.style.width = '0';
@@ -330,7 +232,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         });
         
-        // Check password match
         const confirmPasswordField = document.getElementById('confirm_password');
         
         confirmPasswordField.addEventListener('input', function() {

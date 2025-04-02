@@ -75,406 +75,177 @@ $role = 'Student';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Health Dashboard - MedMS</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Flatpickr for date selection -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/MedMS/styles/variables.css">
-    <link rel="stylesheet" href="/MedMS/styles/global.css">
     <link rel="stylesheet" href="/MedMS/styles/dashboard.css">
-    <!-- Intro.js for guided tour -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/6.0.0/introjs.min.css">
+    
 </head>
 <body class="dark-theme">
     <?php include_once '../../../includes/header.php'; ?>
+    <?php include_once '../../../includes/sidebar.php'; ?>
     
-    <div class="container-fluid mt-4">
-        <div class="row">
-            <!-- Dashboard Content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2" data-intro="Welcome to your health dashboard! This is your central hub for managing health services.">Student Health Dashboard</h1>
-                    <div class="btn-toolbar mb-2 mb-md-0">
-                        <div class="btn-group me-2">
-                            <button type="button" class="btn btn-sm btn-outline-secondary" id="startTutorial">
-                                <i class="fas fa-question-circle"></i> Help
-                            </button>
-                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#appointmentModal">
-                                <i class="fas fa-calendar-plus"></i> Book Appointment
-                            </button>
-                        </div>
+    <main class="main-content">
+        <div class="dashboard-grid">
+            <!-- Quick Actions Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3 class="card-title">Quick Actions</h3>
+                    <div class="card-icon">
+                        <i class="fas fa-bolt"></i>
                     </div>
                 </div>
-                
-                <!-- Welcome Section -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="card welcome-card">
-                            <div class="card-body">
-                                <div class="row align-items-center">
-                                    <div class="col-auto">
-                                        <img src="<?= !empty($user['profile_image']) ? htmlspecialchars($user['profile_image']) : 'https://via.placeholder.com/150' ?>" class="rounded-circle student-profile-img" alt="Student Profile" width="80" height="80">
-                                    </div>
-                                    <div class="col">
-                                        <h4>Welcome, <?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?></h4>
-                                        <p class="text-muted mb-0">Student ID: <?= htmlspecialchars($user['school_id']) ?> | <?= date('l, F j, Y') ?></p>
-                                    </div>
-                                    <div class="col-auto">
-                                        <div class="alert alert-info mb-0">
-                                            <i class="fas fa-info-circle me-2"></i>
-                                            <strong>Remember:</strong> Visit the clinic if you're not feeling well.
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="quick-actions-grid">
+                    <button class="action-btn">
+                        <i class="fas fa-calendar-plus"></i>
+                        <span>Book Appointment</span>
+                    </button>
+                    <button class="action-btn">
+                        <i class="fas fa-notes-medical"></i>
+                        <span>View Records</span>
+                    </button>
+                    <button class="action-btn">
+                        <i class="fas fa-robot"></i>
+                        <span>AI Consultation</span>
+                    </button>
+                    <button class="action-btn">
+                        <i class="fas fa-pills"></i>
+                        <span>Medications</span>
+                    </button>
                 </div>
-                
-                <!-- Quick Stats -->
-                <div class="row mb-4" data-intro="These cards show important health information and upcoming appointments">
-                    <div class="col-xl-3 col-md-6 mb-4">
-                        <div class="card stats-card health-status">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col">
-                                        <h6 class="text-muted">Health Status</h6>
-                                        <h3 class="fw-bold mt-2 text-success">Good</h3>
-                                    </div>
-                                    <div class="col-auto">
-                                        <i class="fas fa-heart fa-2x"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-xl-3 col-md-6 mb-4">
-                        <div class="card stats-card upcoming-appointments">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col">
-                                        <h6 class="text-muted">Upcoming Appointments</h6>
-                                        <h3 class="fw-bold mt-2"><?= count($upcomingAppointments) ?></h3>
-                                    </div>
-                                    <div class="col-auto">
-                                        <i class="fas fa-calendar-check fa-2x"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-xl-3 col-md-6 mb-4">
-                        <div class="card stats-card active-prescriptions">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col">
-                                        <h6 class="text-muted">Active Prescriptions</h6>
-                                        <h3 class="fw-bold mt-2"><?= count($recentPrescriptions) ?></h3>
-                                    </div>
-                                    <div class="col-auto">
-                                        <i class="fas fa-prescription fa-2x"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-xl-3 col-md-6 mb-4">
-                        <div class="card stats-card clinic-hours">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col">
-                                        <h6 class="text-muted">Clinic Hours</h6>
-                                        <h3 class="fw-bold mt-2">8:00 - 5:00</h3>
-                                    </div>
-                                    <div class="col-auto">
-                                        <i class="fas fa-clock fa-2x"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Two-column layout for appointments and health record -->
-                <div class="row mb-4">
-                    <!-- Upcoming Appointments -->
-                    <div class="col-lg-6 mb-4">
-                        <div class="card" data-intro="Here you can see your upcoming medical appointments">
-                            <div class="card-header">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                Upcoming Appointments
-                            </div>
-                            <div class="card-body">
-                                <?php if (count($upcomingAppointments) > 0): ?>
-                                    <div class="list-group mb-3">
-                                        <?php foreach ($upcomingAppointments as $appointment): ?>
-                                            <div class="list-group-item list-group-item-action">
-                                                <div class="d-flex w-100 justify-content-between">
-                                                    <h5 class="mb-1">
-                                                        <i class="fas fa-stethoscope me-2"></i>
-                                                        Dr. <?= htmlspecialchars($appointment['first_name'] . ' ' . $appointment['last_name']) ?>
-                                                    </h5>
-                                                    <small class="badge bg-primary">
-                                                        <?= date('M j, Y', strtotime($appointment['consultation_date'])) ?>
-                                                    </small>
-                                                </div>
-                                                <p class="mb-1">
-                                                    <i class="fas fa-clock me-1"></i>
-                                                    <?= date('h:i A', strtotime($appointment['consultation_date'])) ?>
-                                                </p>
-                                                <p class="mb-1">
-                                                    <i class="fas fa-comment-medical me-1"></i>
-                                                    Reason: <?= htmlspecialchars($appointment['reason']) ?>
-                                                </p>
-                                                <div class="d-flex mt-2">
-                                                    <a href="/MedMS/src/modules/consultation/view.php?id=<?= $appointment['consultation_id'] ?>" class="btn btn-sm btn-outline-info me-2">
-                                                        <i class="fas fa-eye"></i> Details
-                                                    </a>
-                                                    <?php if ($appointment['status'] === 'scheduled'): ?>
-                                                    <a href="/MedMS/src/modules/consultation/cancel.php?id=<?= $appointment['consultation_id'] ?>" class="btn btn-sm btn-outline-danger me-2">
-                                                        <i class="fas fa-times-circle"></i> Cancel
-                                                    </a>
-                                                    <?php endif; ?>
-                                                </div>
-                                            </div>
-                                        <?php endforeach; ?>
-                                    </div>
-                                    
-                                    <a href="/MedMS/src/modules/consultation/history.php" class="btn btn-outline-primary">
-                                        <i class="fas fa-history"></i> View All Appointments
-                                    </a>
-                                <?php else: ?>
-                                    <div class="alert alert-info">
-                                        <i class="fas fa-info-circle me-2"></i>
-                                        You have no upcoming appointments.
-                                        <button type="button" class="btn btn-sm btn-primary ms-2" data-bs-toggle="modal" data-bs-target="#appointmentModal">
-                                            Book Now
-                                        </button>
-                                    </div>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Health Record Summary -->
-                    <div class="col-lg-6">
-                        <div class="card mb-4" data-intro="This section shows a summary of your health records">
-                            <div class="card-header">
-                                <i class="fas fa-file-medical me-1"></i>
-                                Health Record Summary
-                            </div>
-                            <div class="card-body">
-                                <?php if ($healthRecord): ?>
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <h6 class="text-muted">Blood Type</h6>
-                                            <p class="fw-bold"><?= htmlspecialchars($healthRecord['blood_type'] ?? 'Not recorded') ?></p>
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <h6 class="text-muted">Allergies</h6>
-                                            <p class="fw-bold"><?= htmlspecialchars($healthRecord['allergies'] ?? 'None') ?></p>
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <h6 class="text-muted">Weight</h6>
-                                            <p class="fw-bold"><?= htmlspecialchars($healthRecord['weight'] ?? 'Not recorded') ?> kg</p>
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <h6 class="text-muted">Height</h6>
-                                            <p class="fw-bold"><?= htmlspecialchars($healthRecord['height'] ?? 'Not recorded') ?> cm</p>
-                                        </div>
-                                        <div class="col-12 mb-3">
-                                            <h6 class="text-muted">Medical Conditions</h6>
-                                            <p class="fw-bold"><?= htmlspecialchars($healthRecord['medical_conditions'] ?? 'None recorded') ?></p>
-                                        </div>
-                                        <div class="col-12 mb-3">
-                                            <h6 class="text-muted">Last Updated</h6>
-                                            <p class="fw-bold"><?= $healthRecord['updated_at'] ? date('F j, Y', strtotime($healthRecord['updated_at'])) : 'Never' ?></p>
-                                        </div>
-                                    </div>
-                                    
-                                    <a href="/MedMS/src/modules/medical_history/view.php?id=<?= $user_id ?>" class="btn btn-outline-primary">
-                                        <i class="fas fa-file-medical-alt"></i> View Complete Health Record
-                                    </a>
-                                <?php else: ?>
-                                    <div class="alert alert-warning">
-                                        <i class="fas fa-exclamation-triangle me-2"></i>
-                                        No health record found. Please visit the clinic to complete your health record.
-                                    </div>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                        
-                        <!-- Recent Prescriptions -->
-                        <div class="card" data-intro="Your most recent prescriptions are shown here">
-                            <div class="card-header">
-                                <i class="fas fa-prescription-bottle-alt me-1"></i>
-                                Recent Prescriptions
-                            </div>
-                            <div class="card-body">
-                                <?php if (count($recentPrescriptions) > 0): ?>
-                                    <div class="list-group">
-                                        <?php foreach ($recentPrescriptions as $prescription): ?>
-                                            <a href="/MedMS/src/modules/prescription/view.php?id=<?= $prescription['prescription_id'] ?>" class="list-group-item list-group-item-action">
-                                                <div class="d-flex w-100 justify-content-between">
-                                                    <h6 class="mb-1"><?= htmlspecialchars($prescription['medication_name']) ?></h6>
-                                                    <small><?= date('M j, Y', strtotime($prescription['created_at'])) ?></small>
-                                                </div>
-                                                <p class="mb-1">
-                                                    <small class="text-muted">
-                                                        <i class="fas fa-user-md me-1"></i> Dr. <?= htmlspecialchars($prescription['first_name'] . ' ' . $prescription['last_name']) ?>
-                                                    </small>
-                                                </p>
-                                                <p class="mb-1">
-                                                    <small>
-                                                        <i class="fas fa-pills me-1"></i>
-                                                        <?= htmlspecialchars($prescription['dosage_instructions']) ?>
-                                                    </small>
-                                                </p>
-                                            </a>
-                                        <?php endforeach; ?>
-                                    </div>
-                                <?php else: ?>
-                                    <div class="alert alert-info">
-                                        <i class="fas fa-info-circle me-2"></i>
-                                        No recent prescriptions.
-                                    </div>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Health Tips Section -->
-                <div class="row mb-4" data-intro="Here you'll find helpful health tips and resources">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <i class="fas fa-lightbulb me-1"></i>
-                                Health Tips & Resources
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-4 mb-3">
-                                        <div class="card h-100">
-                                            <div class="card-body">
-                                                <h5 class="card-title"><i class="fas fa-virus me-2"></i> COVID-19 Prevention</h5>
-                                                <p class="card-text">Remember to wear masks in crowded places, maintain social distancing, and wash hands frequently.</p>
-                                                <a href="/MedMS/src/modules/resources/covid.php" class="btn btn-sm btn-outline-primary">Learn More</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        <div class="card h-100">
-                                            <div class="card-body">
-                                                <h5 class="card-title"><i class="fas fa-brain me-2"></i> Mental Health Support</h5>
-                                                <p class="card-text">Stress management resources and counseling services available for all students.</p>
-                                                <a href="/MedMS/src/modules/resources/mental_health.php" class="btn btn-sm btn-outline-primary">Learn More</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        <div class="card h-100">
-                                            <div class="card-body">
-                                                <h5 class="card-title"><i class="fas fa-apple-alt me-2"></i> Nutrition Guide</h5>
-                                                <p class="card-text">Maintaining a balanced diet is crucial for academic performance and overall health.</p>
-                                                <a href="/MedMS/src/modules/resources/nutrition.php" class="btn btn-sm btn-outline-primary">Learn More</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </main>
-        </div>
-    </div>
-    
-    <!-- Appointment Booking Modal -->
-    <div class="modal fade" id="appointmentModal" tabindex="-1" aria-labelledby="appointmentModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="appointmentModalLabel">Book an Appointment</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form action="/MedMS/src/modules/consultation/create.php" method="POST">
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="doctor" class="form-label">Select Doctor</label>
-                            <select class="form-select" id="doctor" name="staff_id" required>
-                                <option value="">Select a doctor</option>
-                                <?php foreach ($doctors as $doctor): ?>
-                                    <option value="<?= $doctor['user_id'] ?>">
-                                        Dr. <?= htmlspecialchars($doctor['first_name'] . ' ' . $doctor['last_name']) ?> 
-                                        (<?= htmlspecialchars($doctor['specialty']) ?>)
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="consultation_date" class="form-label">Appointment Date & Time</label>
-                            <input type="text" class="form-control" id="consultation_date" name="consultation_date" placeholder="Select date and time" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="reason" class="form-label">Reason for Visit</label>
-                            <textarea class="form-control" id="reason" name="reason" rows="3" placeholder="Please describe your symptoms or reason for the appointment" required></textarea>
-                        </div>
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" id="urgent" name="urgent" value="1">
-                            <label class="form-check-label" for="urgent">
-                                This is urgent
-                            </label>
-                        </div>
-                        <input type="hidden" name="patient_id" value="<?= $user_id ?>">
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Book Appointment</button>
-                    </div>
-                </form>
             </div>
-        </div>
-    </div>
-    
-    <!-- Tutorial Modal -->
-    <div class="modal fade" id="tutorialModal" tabindex="-1" aria-labelledby="tutorialModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="tutorialModalLabel">Welcome to Student Health Dashboard</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+            <!-- Health Summary Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3 class="card-title">Health Summary</h3>
+                    <div class="card-icon">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
                 </div>
-                <div class="modal-body">
-                    <h6>Welcome to your Health Dashboard</h6>
-                    <p>This dashboard helps you manage your health at our institution. Here you can:</p>
-                    <ul>
-                        <li>View your health record and medical history</li>
-                        <li>Schedule appointments with healthcare providers</li>
-                        <li>Access your prescriptions and medication instructions</li>
-                        <li>Find health resources and educational materials</li>
-                        <li>Check clinic hours and contact information</li>
-                    </ul>
-                    <p>Would you like to take a quick tour of the system?</p>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Blood Type</div>
+                        <div class="stat-value"><?= $healthRecord['blood_type'] ?? 'N/A' ?></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Medical Conditions</div>
+                        <div class="stat-value"><?= $healthRecord['medical_conditions'] ? substr_count($healthRecord['medical_conditions'], ',') + 1 : '0' ?></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Allergies</div>
+                        <div class="stat-value"><?= $healthRecord['allergies'] ? substr_count($healthRecord['allergies'], ',') + 1 : '0' ?></div>
+                    </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Skip Tour</button>
-                    <button type="button" class="btn btn-primary" id="startTutorialFromModal">Start Tour</button>
+            </div>
+
+            <!-- Upcoming Appointments -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3 class="card-title">Upcoming Appointments</h3>
+                    <div class="card-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                </div>
+                <div class="list-group">
+                    <?php foreach ($upcomingAppointments as $appointment): ?>
+                    <div class="list-item">
+                        <img class="list-item-avatar" src="<?= $appointment['profile_image'] ?? 'https://via.placeholder.com/150' ?>" alt="Doctor">
+                        <div class="list-item-content">
+                            <div class="list-item-title">Dr. <?= htmlspecialchars($appointment['first_name'] . ' ' . $appointment['last_name']) ?></div>
+                            <div class="list-item-subtitle"><?= date('M d, Y H:i', strtotime($appointment['consultation_date'])) ?></div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+
+            <!-- Health Statistics Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3 class="card-title">Health Statistics</h3>
+                    <div class="card-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-weight"></i>
+                        </div>
+                        <div class="stat-value">65</div>
+                        <div class="stat-label">Weight (kg)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-ruler-vertical"></i>
+                        </div>
+                        <div class="stat-value">170</div>
+                        <div class="stat-label">Height (cm)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Prescriptions -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3 class="card-title">Recent Prescriptions</h3>
+                    <div class="card-icon">
+                        <i class="fas fa-prescription"></i>
+                    </div>
+                </div>
+                <div class="list-group">
+                    <?php foreach ($recentPrescriptions as $prescription): ?>
+                    <div class="list-item">
+                        <div class="card-icon">
+                            <i class="fas fa-pills"></i>
+                        </div>
+                        <div class="list-item-content">
+                            <div class="list-item-title"><?= htmlspecialchars($prescription['medication_name']) ?></div>
+                            <div class="list-item-subtitle"><?= htmlspecialchars($prescription['dosage_instructions']) ?></div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+
+            <!-- Recent Activities Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3 class="card-title">Recent Activities</h3>
+                    <div class="card-icon">
+                        <i class="fas fa-clock-rotate-left"></i>
+                    </div>
+                </div>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-icon">
+                            <i class="fas fa-capsules"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <h4>Medication Updated</h4>
+                            <p>New prescription added by Dr. Smith</p>
+                            <span class="timeline-date">2 hours ago</span>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-icon">
+                            <i class="fas fa-file-medical"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <h4>Health Record Updated</h4>
+                            <p>Blood test results uploaded</p>
+                            <span class="timeline-date">Yesterday</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </main>
     
-  
-    
-    <!-- FlatPickr for date selection -->
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <!-- Custom JS for Dashboard -->
     <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -493,27 +264,208 @@ $role = 'Student';
                 }
             ]
         });
+
+        // Check if demo is active from previous page or first login
+        const isDemoActive = sessionStorage.getItem('demo_active') === 'true';
+        if (isDemoActive || <?= isset($_SESSION['first_login']) && $_SESSION['first_login'] ? 'true' : 'false' ?>) {
+            startStudentDashboardTour();
+        }
+
+        // Add jQuery UI tooltip for better UX
+        $('.action-btn').tooltip();
         
-        // Display the tutorial modal if it's the user's first login
-        <?php if (isset($_SESSION['show_tutorial']) && $_SESSION['show_tutorial']): ?>
-            var tutorialModal = new bootstrap.Modal(document.getElementById('tutorialModal'));
-            tutorialModal.show();
-            <?php $_SESSION['show_tutorial'] = false; ?>
-        <?php endif; ?>
-        
-        // Start tutorial when button is clicked
-        document.getElementById('startTutorial').addEventListener('click', function() {
-            introJs().start();
-        });
-        
-        document.getElementById('startTutorialFromModal').addEventListener('click', function() {
-            var tutorialModal = bootstrap.Modal.getInstance(document.getElementById('tutorialModal'));
-            tutorialModal.hide();
-            setTimeout(function() {
-                introJs().start();
-            }, 500);
+        // Fix event propagation issues
+        $('.dashboard-card').on('click', function(e) {
+            e.stopPropagation();
         });
     });
+
+    function startStudentDashboardTour() {
+        // Remove any existing intro.js elements
+        const existingOverlay = document.querySelector('.introjs-overlay');
+        const existingTooltip = document.querySelector('.introjs-tooltipReferenceLayer');
+        if (existingOverlay) existingOverlay.remove();
+        if (existingTooltip) existingTooltip.remove();
+
+        introJs().setOptions({
+            steps: [
+                {
+                    title: 'Welcome',
+                    intro: 'Welcome to your Student Health Dashboard! Let\'s explore all features available to you.',
+                    position: 'center'
+                },
+                {
+                    element: '.header-nav',
+                    intro: 'This is your main navigation bar. Access notifications, messages, and your profile settings here.',
+                    position: 'center'
+                },
+                {
+                    element: '.sidebar',
+                    intro: 'Your sidebar menu contains quick access to all major sections of the system.',
+                    position: 'right'
+                },
+                {
+                    element: '.quick-actions-grid',
+                    intro: 'Quick actions allow you to perform common tasks like booking appointments or checking records.',
+                    position: 'bottom'
+                },
+                {
+                    element: '.dashboard-card:nth-child(2)',
+                    intro: 'View your health summary including blood type, medical conditions, and allergies.',
+                    position: 'bottom',  // Changed from 'right' to 'bottom'
+                    tooltipPosition: 'bottom-middle', // Added specific positioning
+                    positionPrecedence: ['bottom', 'top', 'right', 'left'] // Prioritize bottom position
+                },
+                {
+                    element: '.dashboard-card:nth-child(3)',
+                    intro: 'Keep track of your upcoming medical appointments here.',
+                    position: 'left'
+                },
+                {
+                    element: '.dashboard-card:nth-child(4)',
+                    intro: 'Monitor your health statistics over time.',
+                    position: 'right'
+                },
+                {
+                    element: '.dashboard-card:nth-child(5)',
+                    intro: 'Access your recent prescriptions and medications.',
+                    position: 'left'
+                },
+                {
+                    element: '.dashboard-card:nth-child(6)',
+                    intro: 'Stay updated with your recent medical activities and updates.',
+                    position: 'left'
+                },
+                {
+                    element: '#notificationDropdown',
+                    intro: 'Check your notifications for important updates.',
+                    position: 'bottom'
+                },
+                {
+                    element: '#messageDropdown',
+                    intro: 'Access your messages and communicate with medical staff.',
+                    position: 'bottom'
+                },
+                {
+                    element: '#userDropdown',
+                    intro: 'Manage your profile and account settings here.',
+                    position: 'left'
+                },
+                {
+                    title: 'Student Dashboard',
+                    intro: 'Welcome to your Student Health Portal! Let\'s explore your health management features.',
+                    position: 'center'
+                },
+                {
+                    element: '.quick-actions-grid',
+                    intro: 'Book appointments, check records, and access AI consultations instantly.',
+                    position: 'bottom'
+                },
+                {
+                    element: '.stats-grid',
+                    intro: 'View your vital health information and statistics.',
+                    position: 'bottom',
+                    tooltipPosition: 'bottom'
+                },
+                {
+                    element: '.list-group',
+                    intro: 'Track your upcoming appointments and medical schedules.',
+                    position: 'left'
+                },
+                {
+                    element: '.timeline',
+                    intro: 'See your recent medical activities and updates.',
+                    position: 'left'
+                }
+            ],
+            showProgress: true,
+            showBullets: true,
+            exitOnOverlayClick: false,
+            exitOnEsc: false,
+            doneLabel: 'Finish Tour',
+            tooltipClass: 'customTooltip introjs-custom-theme',
+            highlightClass: 'introjs-custom-highlight',
+            overlayOpacity: 1, // Lighter overlay
+            scrollToElement: true,
+            scrollPadding: 100,
+            disableInteraction: true,
+            showStepNumbers: true
+        }).onbeforechange(function(targetElement) {
+            // Remove bootstrap dropdowns that might interfere
+            $('.dropdown-menu').removeClass('show');
+        }).onafterchange(function(targetElement) {
+            // Ensure buttons are clickable
+            const buttons = document.querySelectorAll('.introjs-button');
+            buttons.forEach(button => {
+                button.style.pointerEvents = 'auto';
+                button.style.cursor = 'pointer';
+            });
+        }).oncomplete(function() {
+            sessionStorage.removeItem('demo_active');
+            setTimeout(() => {
+                window.location.reload();
+            }, 100);
+        }).onexit(function() {
+            sessionStorage.removeItem('demo_active');
+            setTimeout(() => {
+                window.location.reload();
+            }, 100);
+        }).start();
+    }
     </script>
+    <style>
+    .introjs-custom-theme {
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        max-width: 1800px;
+    }
+
+    .introjs-custom-theme .introjs-tooltip-title {
+        font-size: 1.1em;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .introjs-custom-theme .introjs-button {
+        background: var(--accent-color);
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        margin: 4px;
+        border-radius: 4px;
+        font-size: 0.9em;
+    }
+
+    .introjs-custom-theme .introjs-button:hover {
+        background: var(--bg-primary);
+    }
+
+    .introjs-custom-theme .introjs-skipbutton {
+        color: var(--text-color);
+        opacity: 0.8;
+    }
+
+    .introjs-helperLayer {
+        background-color: rgba(255,255,255,0.15) !important; // More visible highlight
+        border: 2px solid var(--accent-color);
+        box-shadow: 0 0 15px rgba(0,0,0,0.5) !important;
+    }
+
+    .introjs-custom-highlight {
+        background-color: transparent !important; // More visible highlight
+    }
+
+    .introjs-overlay {
+        background-color: transparent !important; // Lighter overlay
+    }
+
+    .introjs-tooltip.customTooltip {
+        max-width: 300px;
+        margin-top: 15px; // Add some spacing from the element
+    }
+    </style>
 </body>
 </html>
